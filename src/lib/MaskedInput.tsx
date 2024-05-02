@@ -3,11 +3,12 @@ import { useMemo } from 'react';
 import { InputRef } from 'antd';
 import Input, { InputProps } from 'antd/lib/input';
 import IMask from 'imask';
+import InputMask from 'imask/controls/input';
+import type { FactoryArg, FactoryOpts } from 'imask/masked/factory';
 
 export interface MaskedInputProps
   extends Omit<InputProps, 'onChange' | 'value' | 'defaultValue'> {
   mask: MaskType;
-  definitions?: InputMaskOptions['definitions'];
   value?: string;
   defaultValue?: string;
   maskOptions?: InputMaskOptions;
@@ -23,7 +24,6 @@ export const MaskedInput = React.forwardRef<InputRef, MaskedInputProps>(
       maskOptions: _maskOptions,
       value: _value,
       defaultValue,
-      definitions,
       ...antdProps
     } = props;
 
@@ -32,12 +32,6 @@ export const MaskedInput = React.forwardRef<InputRef, MaskedInputProps>(
     const maskOptions = useMemo(() => {
       return {
         mask,
-        definitions: {
-          '0': /[0-9]/,
-          // @ts-ignore
-          ..._maskOptions?.definitions,
-          ...definitions,
-        },
         lazy: false, // make placeholder always visible
         ..._maskOptions,
       } as IMaskOptions;
@@ -47,7 +41,7 @@ export const MaskedInput = React.forwardRef<InputRef, MaskedInputProps>(
       return IMask.createPipe({ ...maskOptions, lazy: false } as any)('');
     }, [maskOptions]);
 
-    const imask = React.useRef<IMask.InputMask<any> | null>(null);
+    const imask = React.useRef<InputMask<any> | null>(null);
 
     const propValue =
       (typeof _value === 'string' ? _value : defaultValue) || '';
@@ -225,16 +219,11 @@ interface OnChangeEvent extends OnChangeParam {
   unmaskedValue: string;
 }
 
-interface IMaskOptionsBase
-  extends UnionToIntersection<IMask.AnyMaskedOptions> {}
+type MaskFieldType = FactoryArg;
 
-export type InputMaskOptions = {
-  [K in keyof IMaskOptionsBase]?: IMaskOptionsBase[K];
-};
+export type InputMaskOptions = FactoryOpts;
 
-type MaskFieldType = string | RegExp | Function | Date | InputMaskOptions;
-
-interface IMaskOptions extends Omit<InputMaskOptions, 'mask'> {
+interface IMaskOptions extends Omit<FactoryArg, 'mask'> {
   mask: MaskFieldType;
 }
 

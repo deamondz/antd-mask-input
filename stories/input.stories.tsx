@@ -1,34 +1,45 @@
-import * as React from 'react';
-import { storiesOf } from '@storybook/react';
-import { MaskedInput, IMask } from '../src';
+import React, { useMemo } from 'react';
 import { Form } from 'antd';
-import { MaskType } from '../src/lib/MaskedInput';
+import type { StoryObj, Meta } from '@storybook/react';
 
-const stories = storiesOf('Components', module);
+import { MaskType, IMask, MaskedInput } from '../src/lib/MaskedInput';
 
-stories.add('Phone', () => (
-  <>
+const meta: Meta = {
+  title: 'MaskedInput',
+  tags: ['autodocs'],
+};
+
+export default meta;
+
+declare global {
+  interface Window {
+    formRef: any;
+  }
+}
+
+export const Phone: StoryObj = {
+  name: 'Phone',
+  render: () => (
     <MaskedInput
       mask={
         //  https://imask.js.org/guide.html#masked-pattern
         '+55(00)0000-0000'
       }
     />
-  </>
-));
+  ),
+};
 
-stories.add('AMEX', () => (
-  <>
-    <MaskedInput mask={'0000 000000 00000'} />
-  </>
-));
+export const AMEX: StoryObj = {
+  name: 'AMEX',
+  render: () => <MaskedInput mask={'0000 000000 00000'} />,
+};
 
 const DynamicPhone = (props: any) => {
   const cellphoneMask = '(00) 0 0000-0000';
   const phoneMask = '(00) 0000-0000';
 
   // always memoize dynamic masks
-  const mask = React.useMemo(
+  const mask = useMemo(
     () => [
       {
         mask: cellphoneMask,
@@ -39,7 +50,7 @@ const DynamicPhone = (props: any) => {
         lazy: false,
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -56,36 +67,32 @@ const DynamicPhone = (props: any) => {
   );
 };
 
-stories.add('Dynamic Mask', () => <DynamicPhone />);
+export const DynamicMask: StoryObj = {
+  name: 'Dynamic Mask',
+  render: () => <DynamicPhone />,
+};
 
-stories.add('RGB', () => {
-  const mask = React.useMemo<MaskType>(() => {
-    return [
-      {
-        mask: 'RGB,RGB,RGB',
-        blocks: {
-          RGB: {
-            mask: IMask.MaskedRange,
-            from: 0,
-            to: 255,
-          },
-        },
+const maskRGB: MaskType = [
+  {
+    mask: 'RGB,RGB,RGB',
+    blocks: {
+      RGB: {
+        mask: IMask.MaskedRange,
+        from: 0,
+        to: 255,
       },
-      {
-        mask: /^#[0-9a-f]{0,6}$/i,
-      },
-    ];
-  }, []);
+    },
+  },
+  {
+    mask: /^#[0-9a-f]{0,6}$/i,
+  },
+];
+export const RGB: StoryObj = {
+  name: 'RGB',
+  render: () => <MaskedInput mask={maskRGB} />,
+};
 
-  return (
-    <>
-      <MaskedInput mask={mask} />
-    </>
-  );
-});
-
-window.formRef = {};
-
+/*
 stories.add('useForm', () => {
   const [form] = Form.useForm();
 
@@ -107,35 +114,34 @@ stories.add('useForm', () => {
     </Form.Item>
   </Form>
 });
+*/
 
 //  https://imask.js.org/guide.html#masked-pattern
-const DUMB_IP_MASK = '0[0][0].0[0][0].0[0][0].0[0][0]';
+export const IP: StoryObj = {
+  name: 'Dynamic Mask',
+  render: () => (
+    <MaskedInput
+      mask="0[0][0].0[0][0].0[0][0].0[0][0]"
+      value="192.16.1.5" //
+    />
+  ),
+};
 
-stories.add('IP', () => (
-  <MaskedInput
-    mask={DUMB_IP_MASK}
-    value="192.16.1.5" //
-  />
-));
+window.formRef = {};
+export const FormExample: StoryObj = {
+  name: 'Form',
+  render: () => (
+    <Form ref={(val) => (window.formRef = val)}>
+      <Form.Item
+        label="Username"
+        name="username"
+        initialValue={'123'}
+        rules={[{ required: true, message: 'Please input your username!' }]}
+      >
+        <DynamicPhone />
+      </Form.Item>
 
-
-stories.add('Form', () => (
-  <Form ref={(val) => (window.formRef = val)}>
-    <Form.Item
-      label="Username"
-      name="username"
-      initialValue={'123'}
-      rules={[{ required: true, message: 'Please input your username!' }]}
-    >
-      <DynamicPhone />
-    </Form.Item>
-
-    <button>Go</button>
-  </Form>
-));
-
-declare global {
-  interface Window {
-    formRef: any;
-  }
-}
+      <button>Go</button>
+    </Form>
+  ),
+};
